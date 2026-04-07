@@ -24,10 +24,10 @@ The browser runs JavaScript to interact with a webpage — it has access to the 
 V8 is Google's open-source JavaScript engine, built for Chrome. It compiles JavaScript directly to machine code, making it fast. Node takes V8 and embeds it outside the browser, adding APIs for file system access, networking, and other server-side capabilities that browsers don't expose.
 
 ## What are some key use cases for Node.js?
-REST APIs and back-end services, real-time apps (chat, live updates), data streaming, CLI tools. It's not good choise for CPU-heavy tasks like image processing or complex calculations because of single-threaded nature.
+REST APIs and back-end services, real-time apps (chat, live updates), data streaming, CLI tools. It's not good choice for CPU-heavy tasks like image processing or complex calculations because of single-threaded nature.
 
 ## Explain the difference between CommonJS and ES Modules. Give a code example of each.
-CommonJS is original module system in Node, ES Modules is more modern standart, supported in Node with .mjs extension or if you add "type": "module" in package.json.
+CommonJS is original module system in Node, ES Modules is more modern standard, supported in Node with .mjs extension or if you add "type": "module" in package.json.
 
 **CommonJS (default in Node.js):**
 ```js

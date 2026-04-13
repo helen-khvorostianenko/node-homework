@@ -20,3 +20,9 @@ package-lock.json
 # ===========================================
 .DS_Store
 .DS_Store?
+
+# ===========================================
+# generated files
+# ===========================================
+assignment1/sample-files/*
+!assignment1/sample-files/.gitkeep

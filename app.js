@@ -1,25 +1,38 @@
 const express = require("express");
 const app = express();
+const router = express.Router();
 
+const userRouter = require("./routes/userRoutes");
 const errorHandler = require("./middleware/error-handler");
 const notFound = require("./middleware/not-found");
+
+global.user_id = null;
+global.users = [];
+global.tasks = [];
+
+app.use(express.json({limit: "1kb"}));
 
 app.use((req, res, next) => {
   console.log(req.method, req.path, req.query);
   next();
 });
 
-app.get("/", (req, res) => {
-  res.send("Hello, World!");
-   
+app.use((req, res, next) => {
+  res.on("finish", () => {
+    console.log({
+      method: req.method, 
+      path: req.path, 
+      query: req.query, 
+      status: res.statusCode, 
+      headers: res.getHeaders(), 
+    });
+  });
+  next();
 });
 
-app.post("/testpost", (req, res) => {
-  res.json({ message: "POST received at /testpost" });
-});
+app.use("/api/users", userRouter);
 
 app.use(notFound);
-
 app.use(errorHandler);
 
 const port = process.env.PORT || 3000;

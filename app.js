@@ -3,14 +3,16 @@ const app = express();
 const router = express.Router();
 
 const userRouter = require("./routes/userRoutes");
+const taskRouter = require("./routes/taskRoutes");
 const errorHandler = require("./middleware/error-handler");
 const notFound = require("./middleware/not-found");
+const authMiddleware = require("./middleware/auth");
 
 global.user_id = null;
 global.users = [];
 global.tasks = [];
 
-app.use(express.json({limit: "1kb"}));
+app.use(express.json({ limit: "1kb" }));
 
 app.use((req, res, next) => {
   console.log(req.method, req.path, req.query);
@@ -20,17 +22,18 @@ app.use((req, res, next) => {
 app.use((req, res, next) => {
   res.on("finish", () => {
     console.log({
-      method: req.method, 
-      path: req.path, 
-      query: req.query, 
-      status: res.statusCode, 
-      headers: res.getHeaders(), 
+      method: req.method,
+      path: req.path,
+      query: req.query,
+      status: res.statusCode,
+      headers: res.getHeaders(),
     });
   });
   next();
 });
 
 app.use("/api/users", userRouter);
+app.use("/api/tasks", authMiddleware, taskRouter);
 
 app.use(notFound);
 app.use(errorHandler);

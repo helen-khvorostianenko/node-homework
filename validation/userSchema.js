@@ -1,7 +1,4 @@
 const Joi = require("joi");
-// two  types of attacks:
-// SQL injection: '; DROP TABLE users;'
-// XSS, or cross-site scripting. 
 
 const userSchema = Joi.object({
   email: Joi.string().trim().lowercase().email().required(),

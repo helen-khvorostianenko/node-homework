@@ -8,9 +8,9 @@ const errorHandler = require("./middleware/error-handler");
 const notFound = require("./middleware/not-found");
 const authMiddleware = require("./middleware/auth");
 
+const pool = require("./db/pg-pool");
+
 global.user_id = null;
-global.users = [];
-global.tasks = [];
 
 app.use(express.json({ limit: "1kb" }));
 
@@ -34,6 +34,21 @@ app.use((req, res, next) => {
 
 app.use("/api/users", userRouter);
 app.use("/api/tasks", authMiddleware, taskRouter);
+
+app.get("/health", async (req, res) => {
+  try {
+    await pool.query("SELECT 1");
+    res.json({
+      status: "ok",
+      db: "connected",
+    });
+  }
+  catch(err){
+    res.status(500).json({
+      message: `db not connected, error: ${err.message}`,
+    });
+  }
+});
 
 app.use(notFound);
 app.use(errorHandler);
@@ -61,6 +76,7 @@ async function shutdown(code = 0) {
     await new Promise((resolve) => server.close(resolve));
     console.log("HTTP server closed.");
     // If you have DB connections, close them here
+    await pool.end();
   } catch (err) {
     console.error("Error during shutdown:", err);
     code = 1;

@@ -3,7 +3,7 @@ const { userSchema } = require("../validation/userSchema.js");
 const crypto = require("crypto");
 const util = require("util");
 const scrypt = util.promisify(crypto.scrypt);
-const pool = require("../db/pg-pool.js");
+const prisma = require("../db/prisma");
 
 async function hashPassword(password) {
   const salt = crypto.randomBytes(16).toString("hex");
@@ -28,38 +28,40 @@ const register = async (req, res, next) => {
   let user = null;
   try {
     const hashedPassword = await hashPassword(value.password);
-    user = await pool.query(
-      `INSERT INTO users (email, name, hashed_password) 
-      VALUES ($1, $2, $3) RETURNING id, email, name`,
-      [value.email, value.name, hashedPassword],
-    );
-  } catch (e) {
-    if (e.code === "23505") {
+    user = await prisma.user.create({
+      data: {
+        email: value.email,
+        name: value.name,
+        hashedPassword, 
+      },
+      select: { id: true, email: true, name: true }, 
+    });
+  } catch (err) {
+    if (err.name === "PrismaClientKnownRequestError" && err.code === "P2002") {
       // this means the unique constraint for email was violated
       return res
         .status(StatusCodes.BAD_REQUEST)
         .json({ message: "The unique constraint for email was violated" });
     }
-    return next(e); // all other errors get passed to the error handler
+    return next(err); // all other errors get passed to the error handler
   }
-  const { id, name, email } = user.rows[0];
+  const { id, name, email } = user;
   global.user_id = id;
   return res.status(StatusCodes.CREATED).json({ name, email });
 };
 
 const logon = async (req, res) => {
-  const { email, password } = req.body;
-  const result = await pool.query("SELECT * FROM users WHERE email = $1", [
-    email,
-  ]);
-  if (result.rows.length === 0) {
+  const { email: rawEmail, password } = req.body;
+  const email = rawEmail;
+  const result = await prisma.user.findUnique({ where: { email } });
+  if (!result) {
     return res
       .status(StatusCodes.UNAUTHORIZED)
       .json({ message: "Authentication Failed" });
   }
   
-  const user = result.rows[0];
-  const isEqualPassword = await comparePassword(password, user.hashed_password);
+  const user = result;
+  const isEqualPassword = await comparePassword(password, user.hashedPassword);
   if (!isEqualPassword) {
     return res
       .status(StatusCodes.UNAUTHORIZED)

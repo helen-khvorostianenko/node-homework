@@ -28,3 +28,4 @@ assignment1/sample-files/*
 !assignment1/sample-files/.gitkeep
 
 .vscode/
+/generated/prisma

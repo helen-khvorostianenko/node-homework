@@ -35,14 +35,12 @@ app.use((req, res, next) => {
 app.use("/api/users", userRouter);
 app.use("/api/tasks", authMiddleware, taskRouter);
 
-app.get("/health", async (req, res) => {
+app.get("/health", async (req, res, next) => {
   try {
     await prisma.$queryRaw`SELECT 1`;
     res.json({ status: "ok", db: "connected" });
   } catch (err) {
-    res
-      .status(500)
-      .json({ status: "error", db: "not connected", error: err.message });
+    return next(err);
   }
 });
 
@@ -72,7 +70,6 @@ async function shutdown(code = 0) {
     await new Promise((resolve) => server.close(resolve));
     console.log("HTTP server closed.");
     // If you have DB connections, close them here
-    await pool.end();
     await prisma.$disconnect();
     console.log("Prisma disconnected");
   } catch (err) {

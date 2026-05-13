@@ -6,9 +6,7 @@ const create = async (req, res) => {
   if (!req.body) req.body = {};
   const { error, value } = taskSchema.validate(req.body, { abortEarly: false });
   if (error) {
-    return res
-    .status(StatusCodes.BAD_REQUEST)
-    .json({message: error.message});
+    return res.status(StatusCodes.BAD_REQUEST).json({ message: error.message });
   }
 
   const task = await prisma.task.create({
@@ -68,8 +66,6 @@ const show = async(req, res, next) => {
     }
     return next(err);
   }
-
-  
 };
 
 const update = async (req, res, next) => {
@@ -104,7 +100,7 @@ const update = async (req, res, next) => {
       return res
         .status(StatusCodes.NOT_FOUND)
         .json({ message: "That task was not found" });
-    } 
+    }
     return next(err);
   }
 

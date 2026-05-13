@@ -30,11 +30,11 @@ const register = async (req, res, next) => {
     const hashedPassword = await hashPassword(value.password);
     user = await prisma.user.create({
       data: {
-        email: value.email,
+        email: value.email.toLowerCase(),
         name: value.name,
-        hashedPassword, 
+        hashedPassword,
       },
-      select: { id: true, email: true, name: true }, 
+      select: { id: true, email: true, name: true },
     });
   } catch (err) {
     if (err.name === "PrismaClientKnownRequestError" && err.code === "P2002") {
@@ -52,7 +52,7 @@ const register = async (req, res, next) => {
 
 const logon = async (req, res) => {
   const { email: rawEmail, password } = req.body;
-  const email = rawEmail;
+  const email = rawEmail.toLowerCase();
   const result = await prisma.user.findUnique({ where: { email } });
   if (!result) {
     return res

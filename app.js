@@ -47,6 +47,22 @@ app.get("/health", async (req, res, next) => {
 app.use(notFound);
 app.use(errorHandler);
 
+async function checkDatabaseConnection() {
+  try {
+    await prisma.$connect();
+    console.log("Database connected successfully");
+  } catch (err) {
+    if (err.name === "PrismaClientInitializationError") {
+      console.error("Couldn't connect to the database. Is it running?");
+    } else {
+      console.error("Database connection error:", err);
+    }
+    process.exit(1);
+  }
+}
+
+checkDatabaseConnection();
+
 const port = process.env.PORT || 3000;
 const server = app.listen(port, () =>
   console.log(`Server is listening on port ${port}...`),

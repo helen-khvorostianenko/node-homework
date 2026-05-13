@@ -3,7 +3,6 @@
 # ===========================================
 node_modules/
 npm-debug.log*
-package-lock.json
 
 # ===========================================
 # Environment Variables
@@ -28,4 +27,3 @@ assignment1/sample-files/*
 !assignment1/sample-files/.gitkeep
 
 .vscode/
-/generated/prisma

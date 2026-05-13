@@ -41,7 +41,7 @@ const register = async (req, res, next) => {
       // this means the unique constraint for email was violated
       return res
         .status(StatusCodes.BAD_REQUEST)
-        .json({ message: "The unique constraint for email was violated" });
+        .json({ message: "Email already registered" });
     }
     return next(err); // all other errors get passed to the error handler
   }

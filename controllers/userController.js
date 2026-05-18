@@ -4,6 +4,7 @@ const crypto = require("crypto");
 const util = require("util");
 const scrypt = util.promisify(crypto.scrypt);
 const prisma = require("../db/prisma");
+const { error } = require("console");
 
 async function hashPassword(password) {
   const salt = crypto.randomBytes(16).toString("hex");
@@ -80,4 +81,47 @@ const logoff = (req, res) => {
   return res.sendStatus(StatusCodes.OK);
 };
 
-module.exports = { register, logon, logoff };
+const show = async (req, res) => {
+  const userId = parseInt(req.params.id);
+  
+  if (isNaN(userId)) {
+    return res
+      .status(StatusCodes.BAD_REQUEST)
+      .json({ error: "Invalid user ID"});
+  }
+  
+  if (userId !== global.user_id){
+    return res
+      .status(StatusCodes.FORBIDDEN)
+      .json({ error: "You can only view your own profile" });
+  }
+
+  const user = await prisma.user.findUnique({
+    where: {id: userId},
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      createdAt: true,
+      Task: {
+        where: { isCompleted: false},
+        select: {
+          id: true,
+          title: true,
+          priority: true,
+          createdAt: true
+        },
+        orderBy: {createdAt: 'desc'},
+        take: 5
+      }
+    }
+  });
+
+  if (!user){
+    return res.status(StatusCodes.NOT_FOUND).json({message: "User not found"});
+  }
+
+  res.status(StatusCodes.OK).json(user);
+}
+
+module.exports = { register, logon, logoff, show };

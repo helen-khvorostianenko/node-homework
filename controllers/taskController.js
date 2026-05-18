@@ -17,7 +17,7 @@ const create = async (req, res) => {
         connect: { id: global.user_id },
       },
     },
-    select: { id: true, title: true, isCompleted: true },
+    select: { id: true, title: true, isCompleted: true, priority: true },
   });
 
   return res.status(StatusCodes.CREATED).json(task);
@@ -29,7 +29,17 @@ const index = async (req, res) => {
       userId: global.user_id,
     },
     select: {
-      title: true, isCompleted:true, id: true
+      id: true,
+      title: true, 
+      isCompleted:true, 
+      priority: true,
+      createdAt: true,
+      User:{
+        select: {
+          name: true,
+          email: true,
+        }
+      }
     }
   })
 

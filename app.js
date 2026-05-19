@@ -4,6 +4,7 @@ const router = express.Router();
 
 const userRouter = require("./routes/userRoutes");
 const taskRouter = require("./routes/taskRoutes");
+const analyticsRouter = require("./routes/analyticsRouter")
 const errorHandler = require("./middleware/error-handler");
 const notFound = require("./middleware/not-found");
 const authMiddleware = require("./middleware/auth");
@@ -33,6 +34,7 @@ app.use((req, res, next) => {
 });
 
 app.use("/api/users", userRouter);
+app.use("/api/analytics", authMiddleware, analyticsRouter);
 app.use("/api/tasks", authMiddleware, taskRouter);
 
 app.get("/health", async (req, res, next) => {

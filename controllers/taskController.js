@@ -2,6 +2,25 @@ const { StatusCodes } = require("http-status-codes");
 const { taskSchema, patchTaskSchema } = require("../validation/taskSchema.js");
 const prisma = require("../db/prisma.js");
 
+const getOrderBy = (query) => {
+  const validSortFields = [
+    "title",
+    "priority",
+    "createdAt",
+    "id",
+    "isCompleted",
+  ];
+  const sortBy = query.sortBy || "createdAt";
+  const sortDirection = query.sortDirection === "asc" ? "asc" : "desc";
+
+  if (validSortFields.includes(sortBy)) {
+    return {
+      [sortBy]: sortDirection,
+    };
+  }
+  return { createdAt: "desc" };
+};
+
 const create = async (req, res) => {
   if (!req.body) req.body = {};
   const { error, value } = taskSchema.validate(req.body, { abortEarly: false });
@@ -13,7 +32,7 @@ const create = async (req, res) => {
     data: {
       title: value.title,
       isCompleted: value.isCompleted,
-      user: {
+      User: {
         connect: { id: global.user_id },
       },
     },
@@ -24,24 +43,61 @@ const create = async (req, res) => {
 };
 
 const index = async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const skip = (page - 1) * limit;
+  const { find, isCompleted, min_date, max_date, priority } = req.query;
+  
+  const whereClause = {
+    userId: global.user_id
+  };
+
+  if (find) {
+    whereClause.title = {
+      contains: find,
+      mode: "insensitive",
+    };
+  }
+
+  if (isCompleted !== undefined) {
+    whereClause.isCompleted = isCompleted === "true";
+  }
+
+  if (min_date) {
+    whereClause.createdAt = {
+      ...whereClause.createdAt,
+      gte: new Date(min_date),
+    };
+  }
+  if (max_date) {
+    whereClause.createdAt = {
+      ...whereClause.createdAt,
+      lte: new Date(max_date),
+    };
+  }
+  if (priority && ["low", "medium", "high"].includes(priority)) {
+    whereClause.priority = priority;
+  }
+
   const tasks = await prisma.task.findMany({
-    where: {
-      userId: global.user_id,
-    },
+    where: whereClause,
     select: {
       id: true,
-      title: true, 
-      isCompleted:true, 
+      title: true,
+      isCompleted: true,
       priority: true,
       createdAt: true,
-      User:{
+      User: {
         select: {
           name: true,
           email: true,
-        }
-      }
-    }
-  })
+        },
+      },
+    },
+    skip: skip,
+    take: limit,
+    orderBy: getOrderBy(req.query),
+  });
 
   if (tasks.length === 0) {
     return res
@@ -49,7 +105,23 @@ const index = async (req, res) => {
       .json({ message: "No tasks found" });
   }
 
-  return res.json(tasks);
+  const totalTasks = await prisma.task.count({
+    where: whereClause,
+  });
+
+  const pagination = {
+    page,
+    limit,
+    total: totalTasks,
+    pages: Math.ceil(totalTasks / limit),
+    hasNext: page * limit < totalTasks,
+    hasPrev: page > 1,
+  };
+
+  return res.status(StatusCodes.OK).json({
+    tasks,
+    pagination
+  });
 };
 
 const show = async(req, res, next) => {
@@ -63,9 +135,10 @@ const show = async(req, res, next) => {
   try {
     const userTask = await prisma.task.findUniqueOrThrow({
       where: {
-        id, userId: global.user_id ,
+        id,
+        userId: global.user_id,
       },
-      select: { title: true, isCompleted: true, id: true },
+      select: { title: true, isCompleted: true, id: true, priority: true},
     });
     return res.json(userTask);
   } catch (err) {

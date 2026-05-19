@@ -93,7 +93,9 @@ const register = async (req, res, next) => {
 const logon = async (req, res) => {
   const { email: rawEmail, password } = req.body;
   const email = rawEmail.toLowerCase();
-  const result = await prisma.user.findUnique({ where: { email } });
+  const result = await prisma.user.findUnique({ 
+    where: { email } 
+  });
   if (!result) {
     return res
       .status(StatusCodes.UNAUTHORIZED)

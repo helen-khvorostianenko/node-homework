@@ -74,6 +74,7 @@ const getUsersWithStats = async (req, res, next) => {
 
   try {
     const usersRaw = await prisma.user.findMany({
+      omit: { hashedPassword: true },
       include: {
         Task: {
           where: { isCompleted: false },

@@ -21,6 +21,37 @@ const getOrderBy = (query) => {
   return { createdAt: "desc" };
 };
 
+const buildSelect = (query) => {
+  const defaultSelect = {
+    id: true,
+    title: true,
+    isCompleted: true,
+    priority: true,
+    createdAt: true,
+    User: { select: { name: true, email: true } },
+  }; 
+
+  if (!query.fields) {
+    return defaultSelect;
+  }
+
+  const allowed = ["id", "title", "isCompleted", "priority", "createdAt"];
+
+  const requested = query.fields.split(",").map((f) => f.trim());
+  const select = {};
+  for (const field of requested) {
+    if (allowed.includes(field)) {
+      select[field] = true;
+    }
+  }
+
+  if (Object.keys(select).length === 0) return defaultSelect;
+
+  select.id = true;
+
+  return select;
+}
+
 const create = async (req, res) => {
   if (!req.body) req.body = {};
   const { error, value } = taskSchema.validate(req.body, { abortEarly: false });
@@ -81,19 +112,7 @@ const index = async (req, res) => {
 
   const tasks = await prisma.task.findMany({
     where: whereClause,
-    select: {
-      id: true,
-      title: true,
-      isCompleted: true,
-      priority: true,
-      createdAt: true,
-      User: {
-        select: {
-          name: true,
-          email: true,
-        },
-      },
-    },
+    select: buildSelect(req.query),
     skip: skip,
     take: limit,
     orderBy: getOrderBy(req.query),

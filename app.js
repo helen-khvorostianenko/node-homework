@@ -4,7 +4,7 @@ const router = express.Router();
 
 const userRouter = require("./routes/userRoutes");
 const taskRouter = require("./routes/taskRoutes");
-const analyticsRouter = require("./routes/analyticsRouter")
+const analyticsRouter = require("./routes/analyticsRoutes")
 const errorHandler = require("./middleware/error-handler");
 const notFound = require("./middleware/not-found");
 const authMiddleware = require("./middleware/auth");

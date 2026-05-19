@@ -7,11 +7,11 @@ const {
   show,
   update,
   deleteTask,
-  bulk
+  bulkCreate,
 } = require("../controllers/taskController");
 
 router.route("/").post(create).get(index);
-router.route("/bulk").post(bulk);
+router.route("/bulk").post(bulkCreate);
 router.route("/:id").get(show).patch(update).delete(deleteTask);
 
 module.exports = router;

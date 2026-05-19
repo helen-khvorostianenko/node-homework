@@ -1,5 +1,9 @@
 const { StatusCodes } = require("http-status-codes");
-const { taskSchema, patchTaskSchema } = require("../validation/taskSchema.js");
+const {
+  taskSchema,
+  patchTaskSchema,
+} = require("../validation/taskSchema.js");
+const { paginationSchema } = require("../validation/paginationSchema.js");
 const prisma = require("../db/prisma.js");
 
 const getOrderBy = (query) => {
@@ -63,6 +67,7 @@ const create = async (req, res) => {
     data: {
       title: value.title,
       isCompleted: value.isCompleted,
+      priority: value.priority,
       User: {
         connect: { id: global.user_id },
       },
@@ -74,8 +79,14 @@ const create = async (req, res) => {
 };
 
 const index = async (req, res) => {
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 10;
+  const { error, value } = paginationSchema.validate(req.query);
+  if (error) {
+    return res
+      .status(StatusCodes.BAD_REQUEST)
+      .json({ message: error.message });
+  }
+
+  const { page, limit } = value;
   const skip = (page - 1) * limit;
   const { find, isCompleted, min_date, max_date, priority } = req.query;
   
@@ -151,7 +162,16 @@ const show = async(req, res, next) => {
         id,
         userId: global.user_id,
       },
-      select: { title: true, isCompleted: true, id: true, priority: true},
+      select: {
+        id: true,
+        title: true,
+        isCompleted: true,
+        priority: true,
+        createdAt: true,
+        User: {
+          select: { name: true, email: true },
+        },
+      },
     });
     return res.json(userTask);
   } catch (err) {
@@ -184,13 +204,19 @@ const update = async (req, res, next) => {
   let updatedTask = null;
   try {
      updatedTask = await prisma.task.update({
-      data: value,
-      where: {
-        id,
-        userId: global.user_id,
-      },
-      select: { title: true, isCompleted: true, id: true },
-    });
+       data: value,
+       where: {
+         id,
+         userId: global.user_id,
+       },
+       select: {
+         title: true,
+         isCompleted: true,
+         id: true,
+         priority: true,
+         createdAt: true,
+       },
+     });
   } catch (err) {
     if (err.code === "P2025") {
       return res
@@ -230,7 +256,7 @@ const deleteTask = async(req, res, next) => {
   } 
 };
 
-const bulk = async (req, res, next) => {
+const bulkCreate = async (req, res, next) => {
   const { tasks } = req.body;
 
   // Validate the tasks array
@@ -281,5 +307,5 @@ module.exports = {
   show,
   update,
   deleteTask,
-  bulk
+  bulkCreate,
 };

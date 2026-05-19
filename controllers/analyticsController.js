@@ -1,5 +1,6 @@
 const prisma = require("../db/prisma");
 const { StatusCodes } = require("http-status-codes");
+const { paginationSchema } = require("../validation/paginationSchema.js");
 
 const getUserAnalytics = async (req, res, next) => {
   const userId = parseInt(req.params.id);
@@ -68,9 +69,12 @@ const getUserAnalytics = async (req, res, next) => {
 };
 
 const getUsersWithStats = async (req, res, next) => {
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 10;
-  const skip = (page - 1) * limit;
+  const { error, value } = paginationSchema.validate(req.query);
+  if (error) {
+    return res.status(StatusCodes.BAD_REQUEST).json({ message: error.message });
+  }
+  const { page, limit } = value;
+  const skip = (page - 1) * limit;  
 
   try {
     const usersRaw = await prisma.user.findMany({
@@ -120,12 +124,12 @@ const getUsersWithStats = async (req, res, next) => {
   }
 };
 
-const search = async (req, res, next) => {
+const searchTasks = async (req, res, next) => {
   const searchQuery = req.query.q;
 
   if (!searchQuery || searchQuery.trim().length < 2) {
-    return res.status(StatusCodes.BAD_REQUEST).json({ 
-      error: "Search query must be at least 2 characters long" 
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      error: "Search query must be at least 2 characters long",
     });
   }
 
@@ -164,10 +168,10 @@ const search = async (req, res, next) => {
     query: searchQuery,
     count: searchResults.length,
   });
-}
+};
 
 module.exports = {
   getUsersWithStats,
   getUserAnalytics,
-  search,
+  searchTasks,
 };

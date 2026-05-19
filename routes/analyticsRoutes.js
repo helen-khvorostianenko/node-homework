@@ -3,11 +3,11 @@ const router = express.Router();
 const {
   getUsersWithStats,
   getUserAnalytics,
-  search,
+  searchTasks,
 } = require("../controllers/analyticsController");
 
+router.route("/tasks/search").get(searchTasks);
 router.route("/users").get(getUsersWithStats);
 router.route("/users/:id").get(getUserAnalytics);
-router.route("/tasks/search").get(search);
 
 module.exports = router;

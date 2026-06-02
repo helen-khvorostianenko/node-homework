@@ -5,6 +5,28 @@ const util = require("util");
 const scrypt = util.promisify(crypto.scrypt);
 const prisma = require("../db/prisma");
 const { error } = require("console");
+const { randomUUID } = require("crypto");
+const jwt = require("jsonwebtoken");
+
+const cookieFlags = (req) => {
+  return {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production", // only when HTTPS is available
+    sameSite: "Strict",
+  };
+};
+
+const setJwtCookie = (req, res, user) => {
+  // Sign JWT
+  const payload = {
+    id: user.id,
+    csrfToken: randomUUID(),
+  };
+  const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1h" });
+  // Set cookie.  Note that the cookie flags have to be different in production and in test.
+  res.cookie("jwt", token, { ...cookieFlags(req), maxAge: 3600000 }); // 1 hour expiration
+  return payload.csrfToken;
+}
 
 async function hashPassword(password) {
   const salt = crypto.randomBytes(16).toString("hex");
@@ -70,13 +92,14 @@ const register = async (req, res, next) => {
       return { user: newUser, welcomeTasks };
     });
 
-    global.user_id = result.user.id;
+    const csrfToken = setJwtCookie(req, res, result.user);
 
     res.status(StatusCodes.CREATED);
     res.json({
       user: result.user,
       welcomeTasks: result.welcomeTasks,
       transactionStatus: "success",
+      csrfToken,
     });
     return;
   } catch (err) {
@@ -110,15 +133,16 @@ const logon = async (req, res) => {
       .json({ message: "Authentication Failed" });
   }
 
-  global.user_id = user.id;
+  const csrfToken = setJwtCookie(req, res, user);
   return res.status(StatusCodes.OK).json({
     name: user.name,
     email: user.email,
+    csrfToken,
   });
 };
 
 const logoff = (req, res) => {
-  global.user_id = null;
+  res.clearCookie("jwt", cookieFlags(req));
   return res.sendStatus(StatusCodes.OK);
 };
 
@@ -131,7 +155,7 @@ const show = async (req, res) => {
       .json({ error: "Invalid user ID"});
   }
   
-  if (userId !== global.user_id){
+  if (userId !== req.user.id){
     return res
       .status(StatusCodes.FORBIDDEN)
       .json({ error: "You can only view your own profile" });

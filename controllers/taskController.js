@@ -129,6 +129,13 @@ const index = async (req, res) => {
     orderBy: getOrderBy(req.query),
   });
 
+  if (tasks.length === 0) {
+    return res
+      .status(StatusCodes.NOT_FOUND)
+      .json({ message: "No tasks found" });
+  }
+
+
   const totalTasks = await prisma.task.count({
     where: whereClause,
   });

@@ -25,5 +25,6 @@ npm-debug.log*
 # ===========================================
 assignment1/sample-files/*
 !assignment1/sample-files/.gitkeep
+coverage/
 
 .vscode/

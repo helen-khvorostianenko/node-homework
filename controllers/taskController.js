@@ -92,6 +92,7 @@ const index = async (req, res) => {
   
   const whereClause = {
     userId: req.user.id,
+    deletedAt: null,
   };
 
   if (find) {
@@ -175,6 +176,7 @@ const show = async(req, res, next) => {
         isCompleted: true,
         priority: true,
         createdAt: true,
+        deletedAt: true,
         User: {
           select: { name: true, email: true },
         },
@@ -190,6 +192,22 @@ const show = async(req, res, next) => {
     return next(err);
   }
 };
+
+const showTrash = async (req, res) => {
+  try {
+    const tasks = await prisma.task.findMany({
+      where: {
+        userId: req.user.id,
+        deletedAt: {not: null}
+      }
+    });
+    res.json(tasks);
+  } catch (error) {
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      error: error.message
+    });
+  }
+}
 
 const update = async (req, res, next) => {
   if (!req.body) req.body = {};
@@ -236,6 +254,55 @@ const update = async (req, res, next) => {
   return res.json(updatedTask);
 };
 
+const restoreTask = async(req, res) => {
+  const id = parseInt(req.params?.id);
+  if (!id) {
+    return res
+      .status(StatusCodes.BAD_REQUEST)
+      .json({ message: "The task ID passed is not valid." });
+  }
+
+  try {
+    const task = await prisma.task.findUnique({
+      where: { id: id },
+    });
+
+    if (!task || task.userId !== req.user.id) {
+      return res
+        .status(StatusCodes.FORBIDDEN)
+        .json({ error: "Not authorized" });
+    } 
+
+    const restored = await prisma.task.update({
+      where: {
+        id: id,
+      },
+      data: {deletedAt: null}
+    });
+    return res.json(restored);
+  } catch (error) {
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      error: error.message,
+    });
+  }
+}
+
+const deleteTrash = async(req, res) => {
+   try {
+     const result = await prisma.task.deleteMany({
+       where: {
+         userId: req.user.id,
+         deletedAt: { not: null },
+       },
+     });
+     res.json({ deleted: result.count });
+   } catch (error) {
+     res
+       .status(StatusCodes.INTERNAL_SERVER_ERROR)
+       .json({ error: error.message });
+   }
+}
+
 const deleteTask = async(req, res, next) => {
   const id = parseInt(req.params?.id);
   if (!id){
@@ -245,10 +312,22 @@ const deleteTask = async(req, res, next) => {
   }
 
   try{
-    const deletedTask = await prisma.task.delete({
+    const task = await prisma.task.findUnique({
+      where: { id: id },
+    });
+
+    if (!task || task.userId !== req.user.id) {
+      return res
+        .status(StatusCodes.FORBIDDEN)
+        .json({ error: "Not authorized" });
+    }
+    const deletedTask = await prisma.task.update({
       where: {
         id,
         userId: req.user.id,
+      },
+      data: {
+        deletedAt: new Date(),
       },
       select: { title: true, isCompleted: true, id: true },
     });
@@ -312,7 +391,10 @@ module.exports = {
   create,
   index,
   show,
+  showTrash,
   update,
+  restoreTask,
+  deleteTrash,
   deleteTask,
   bulkCreate,
 };

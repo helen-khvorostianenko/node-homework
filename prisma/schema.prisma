@@ -24,6 +24,7 @@ model Task {
   priority     String   @default("medium") @db.VarChar(10)
   userId       Int      @map("user_id")
   createdAt    DateTime @default(now()) @db.Timestamp(6) @map("created_at")
+  deletedAt    DateTime? @map("deleted_at")
   User         User     @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   @@unique([id, userId])
   @@map("tasks")

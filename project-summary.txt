@@ -10,3 +10,13 @@ New/Modified APIs:
 - GET /tasks/trash — returns all tasks in trash (GET, no body)
 - PATCH /tasks/:id/restore — restores task from trash (no body)
 - DELETE /tasks/trash — permanently deletes all trashed tasks
+
+## Google OAuth Authentication
+
+Users can log in using their Google account via the "Logon with Google" button.
+
+New API:
+- POST /api/users/googleLogon — accepts { code } (authorization code from Google),
+  exchanges it for tokens via google-auth-library, retrieves user email and name.
+  If user exists: returns status 200 + { name, csrfToken }
+  If new user: creates user + welcome tasks, returns status 201 + { user: { name }, csrfToken }

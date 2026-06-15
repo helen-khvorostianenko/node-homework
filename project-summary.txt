@@ -6,7 +6,7 @@ Instead of permanently deleting tasks, they are moved to trash.
 
 New/Modified APIs:
 - DELETE /tasks/:id — moves task to trash (sets deletedAt timestamp)
-- GET /tasks — now returns only tasks where trash: false
+- GET /tasks — now returns only tasks where trash: null
 - GET /tasks/trash — returns all tasks in trash (GET, no body)
 - PATCH /tasks/:id/restore — restores task from trash (no body)
 - DELETE /tasks/trash — permanently deletes all trashed tasks

@@ -59,14 +59,16 @@ https://node-homework-dqq6.onrender.com/
 ## API Endpoints
 
 ### Auth
+
 - POST /api/users/register - register a new user
 - POST /api/users/logon - login
 - POST /api/users/logoff - logout
 
 ### Tasks
+
 - GET /api/tasks - get all tasks (supports pagination, filtering, sorting)
 - POST /api/tasks - create a task
-- GET /api/tasks/:id  - get a task by id
+- GET /api/tasks/:id - get a task by id
 - PATCH /api/tasks/:id - update a task
 - DELETE /api/tasks/:id - move task to trash
 - GET /api/tasks/trash - view trashed tasks

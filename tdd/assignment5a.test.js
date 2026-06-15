@@ -97,7 +97,7 @@ test("Total price of the first 5 orders", async () => {
   const sql_line = one_sql_line();
   expect(sql_line).not.toBe(undefined);
   let result = await client.query(sql_line);
-  expect(result.rows.length).toBe(5);
+  expect(result.rows).toHaveLength(5);
   expect(result.rows[0]).toHaveProperty("order_id");
   expect(result.rows[0].order_id).toBe(1);
   expect(result.rows[0]).toHaveProperty("total_price");
@@ -133,7 +133,7 @@ test("creating a new order", async () => {
   sql_line = one_sql_line();
   expect(sql_line).not.toBe(undefined);
   result = await client.query(sql_line);
-  expect(result.rows.length).toBe(5);
+  expect(result.rows).toHaveLength(5);
   expect(result.rows[0]).toHaveProperty("product_id");
   expect(result.rows[0].product_id).toBe(23);
   sql_line = one_sql_line();
@@ -163,7 +163,7 @@ test("creating a new order", async () => {
   expect(sql_line.indexOf("order_id")).toBeGreaterThan(10);
   parameterized = sql_line.substring(0, order_id_index) + "order_id = $1;";
   result = await client.query(parameterized, [order_id]);
-  expect(result.rows.length).toBe(5);
+  expect(result.rows).toHaveLength(5);
   expect(result.rows[0]).toHaveProperty("line_item_id");
 });
 

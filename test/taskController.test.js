@@ -11,7 +11,7 @@ const {
   create,
   update,
   deleteTask,
-  showTrash, 
+  showTrash,
   restoreTask,
   deleteTrash,
 } = require("../controllers/taskController");
@@ -119,7 +119,7 @@ describe("test getting created tasks", () => {
 
   it("22. The returned object has a tasks array of length 1.", () => {
     saveData = saveRes._getJSONData();
-    expect(saveData.tasks.length).toBe(1);
+    expect(saveData.tasks).toHaveLength(1);
   });
 
   it("23. The title in the first array object is as expected.", () => {
@@ -132,7 +132,7 @@ describe("test getting created tasks", () => {
 
   it("25. If you get the list of tasks using the userId from user2, you get a 404.", async () => {
     const req = httpMocks.createRequest({ method: "GET" });
-    req.user = { id: user2.id }; 
+    req.user = { id: user2.id };
     saveRes = httpMocks.createResponse({ eventEmitter: EventEmitter });
     await waitForRouteHandlerCompletion(index, req, saveRes);
     expect(saveRes.statusCode).toBe(404);
@@ -280,7 +280,7 @@ describe("test recycle bin", () => {
     await waitForRouteHandlerCompletion(index, req, saveRes);
     expect(saveRes.statusCode).toBe(200);
     const data = saveRes._getJSONData();
-    expect(data.tasks.length).toBe(1);
+    expect(data.tasks).toHaveLength(1);
   });
 
   it("40. User1 can empty the trash.", async () => {

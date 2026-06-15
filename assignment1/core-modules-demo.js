@@ -1,9 +1,9 @@
-const os = require('os');
-const path = require('path');
-const fs = require('fs');
-const fsp = require('fs/promises');
+const os = require("os");
+const path = require("path");
+const fs = require("fs");
+const fsp = require("fs/promises");
 
-const sampleFilesDir = path.join(__dirname, 'sample-files');
+const sampleFilesDir = path.join(__dirname, "sample-files");
 if (!fs.existsSync(sampleFilesDir)) {
   fs.mkdirSync(sampleFilesDir, { recursive: true });
 }

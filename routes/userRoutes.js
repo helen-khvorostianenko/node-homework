@@ -11,7 +11,7 @@ const {
 router.route("/register").post(register);
 router.route("/logon").post(logon);
 router.route("/logoff").post(logoff);
-router.route("/googleLogon").post(googleLogon); 
+router.route("/googleLogon").post(googleLogon);
 router.route("/:id").get(show);
 
 module.exports = router;

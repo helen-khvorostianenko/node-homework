@@ -4,7 +4,7 @@ const router = express.Router();
 
 const userRouter = require("./routes/userRoutes");
 const taskRouter = require("./routes/taskRoutes");
-const analyticsRouter = require("./routes/analyticsRoutes")
+const analyticsRouter = require("./routes/analyticsRoutes");
 const errorHandler = require("./middleware/error-handler");
 const notFound = require("./middleware/not-found");
 const prisma = require("./db/prisma");
@@ -16,7 +16,7 @@ const rateLimiter = require("express-rate-limit");
 app.use(
   rateLimiter({
     windowMs: 15 * 60 * 1000,
-    max: 100, 
+    max: 100,
   }),
 );
 app.set("trust proxy", 1);
@@ -25,7 +25,6 @@ app.use(cookieParser());
 
 app.use(helmet());
 app.use(xss());
-
 
 app.use((req, res, next) => {
   console.log(req.method, req.path, req.query);

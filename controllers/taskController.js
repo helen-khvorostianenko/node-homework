@@ -1,8 +1,5 @@
 const { StatusCodes } = require("http-status-codes");
-const {
-  taskSchema,
-  patchTaskSchema,
-} = require("../validation/taskSchema.js");
+const { taskSchema, patchTaskSchema } = require("../validation/taskSchema.js");
 const { paginationSchema } = require("../validation/paginationSchema.js");
 const prisma = require("../db/prisma.js");
 
@@ -33,7 +30,7 @@ const buildSelect = (query) => {
     priority: true,
     createdAt: true,
     User: { select: { name: true, email: true } },
-  }; 
+  };
 
   if (!query.fields) {
     return defaultSelect;
@@ -54,7 +51,7 @@ const buildSelect = (query) => {
   select.id = true;
 
   return select;
-}
+};
 
 const create = async (req, res) => {
   if (!req.body) req.body = {};
@@ -81,15 +78,13 @@ const create = async (req, res) => {
 const index = async (req, res) => {
   const { error, value } = paginationSchema.validate(req.query);
   if (error) {
-    return res
-      .status(StatusCodes.BAD_REQUEST)
-      .json({ message: error.message });
+    return res.status(StatusCodes.BAD_REQUEST).json({ message: error.message });
   }
 
   const { page, limit } = value;
   const skip = (page - 1) * limit;
   const { find, isCompleted, min_date, max_date, priority } = req.query;
-  
+
   const whereClause = {
     userId: req.user.id,
     deletedAt: null,
@@ -136,7 +131,6 @@ const index = async (req, res) => {
       .json({ message: "No tasks found" });
   }
 
-
   const totalTasks = await prisma.task.count({
     where: whereClause,
   });
@@ -152,11 +146,11 @@ const index = async (req, res) => {
 
   return res.status(StatusCodes.OK).json({
     tasks,
-    pagination
+    pagination,
   });
 };
 
-const show = async(req, res, next) => {
+const show = async (req, res, next) => {
   const id = parseInt(req.params?.id);
   if (!id) {
     return res
@@ -198,16 +192,16 @@ const showTrash = async (req, res) => {
     const tasks = await prisma.task.findMany({
       where: {
         userId: req.user.id,
-        deletedAt: {not: null}
-      }
+        deletedAt: { not: null },
+      },
     });
     res.json(tasks);
   } catch (error) {
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      error: error.message
+      error: error.message,
     });
   }
-}
+};
 
 const update = async (req, res, next) => {
   if (!req.body) req.body = {};
@@ -228,20 +222,20 @@ const update = async (req, res, next) => {
 
   let updatedTask = null;
   try {
-     updatedTask = await prisma.task.update({
-       data: value,
-       where: {
-         id,
-         userId: req.user.id,
-       },
-       select: {
-         title: true,
-         isCompleted: true,
-         id: true,
-         priority: true,
-         createdAt: true,
-       },
-     });
+    updatedTask = await prisma.task.update({
+      data: value,
+      where: {
+        id,
+        userId: req.user.id,
+      },
+      select: {
+        title: true,
+        isCompleted: true,
+        id: true,
+        priority: true,
+        createdAt: true,
+      },
+    });
   } catch (err) {
     if (err.code === "P2025") {
       return res
@@ -254,7 +248,7 @@ const update = async (req, res, next) => {
   return res.json(updatedTask);
 };
 
-const restoreTask = async(req, res) => {
+const restoreTask = async (req, res) => {
   const id = parseInt(req.params?.id);
   if (!id) {
     return res
@@ -271,13 +265,13 @@ const restoreTask = async(req, res) => {
       return res
         .status(StatusCodes.FORBIDDEN)
         .json({ error: "Not authorized" });
-    } 
+    }
 
     const restored = await prisma.task.update({
       where: {
         id: id,
       },
-      data: {deletedAt: null}
+      data: { deletedAt: null },
     });
     return res.json(restored);
   } catch (error) {
@@ -285,33 +279,33 @@ const restoreTask = async(req, res) => {
       error: error.message,
     });
   }
-}
+};
 
-const deleteTrash = async(req, res) => {
-   try {
-     const result = await prisma.task.deleteMany({
-       where: {
-         userId: req.user.id,
-         deletedAt: { not: null },
-       },
-     });
-     res.json({ deleted: result.count });
-   } catch (error) {
-     res
-       .status(StatusCodes.INTERNAL_SERVER_ERROR)
-       .json({ error: error.message });
-   }
-}
+const deleteTrash = async (req, res) => {
+  try {
+    const result = await prisma.task.deleteMany({
+      where: {
+        userId: req.user.id,
+        deletedAt: { not: null },
+      },
+    });
+    res.json({ deleted: result.count });
+  } catch (error) {
+    res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ error: error.message });
+  }
+};
 
-const deleteTask = async(req, res, next) => {
+const deleteTask = async (req, res, next) => {
   const id = parseInt(req.params?.id);
-  if (!id){
+  if (!id) {
     return res
       .status(StatusCodes.BAD_REQUEST)
       .json({ message: "The task ID passed is not valid." });
   }
 
-  try{
+  try {
     const task = await prisma.task.findUnique({
       where: { id: id },
     });
@@ -339,7 +333,7 @@ const deleteTask = async(req, res, next) => {
         .json({ message: "That task was not found" });
     }
     return next(err);
-  } 
+  }
 };
 
 const bulkCreate = async (req, res, next) => {

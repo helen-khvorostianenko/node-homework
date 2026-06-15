@@ -4,7 +4,6 @@ const crypto = require("crypto");
 const util = require("util");
 const scrypt = util.promisify(crypto.scrypt);
 const prisma = require("../db/prisma");
-const { error } = require("console");
 const { randomUUID } = require("crypto");
 const jwt = require("jsonwebtoken");
 const { OAuth2Client } = require("google-auth-library");
@@ -27,7 +26,7 @@ const setJwtCookie = (req, res, user) => {
   // Set cookie.  Note that the cookie flags have to be different in production and in test.
   res.cookie("jwt", token, { ...cookieFlags(req), maxAge: 3600000 }); // 1 hour expiration
   return payload.csrfToken;
-}
+};
 
 async function hashPassword(password) {
   const salt = crypto.randomBytes(16).toString("hex");
@@ -76,9 +75,9 @@ const createUserWithWelcomeTasks = async (tx, userData, returnTasks = true) => {
     });
     result.welcomeTasks = welcomeTasks;
   }
-  
+
   return result;
-}
+};
 
 const register = async (req, res, next) => {
   let isPerson = false;
@@ -109,11 +108,9 @@ const register = async (req, res, next) => {
   }
 
   if (!isPerson) {
-    return res
-      .status(StatusCodes.BAD_REQUEST)
-      .json({
-        message: "Bot verification failed. Please complete the reCAPTCHA.",
-      });
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      message: "Bot verification failed. Please complete the reCAPTCHA.",
+    });
   }
 
   if (!req.body) req.body = {};
@@ -130,7 +127,6 @@ const register = async (req, res, next) => {
         name: value.name,
         hashedPassword,
       });
-
     });
 
     const csrfToken = setJwtCookie(req, res, newUserData.user);
@@ -144,28 +140,28 @@ const register = async (req, res, next) => {
     });
     return;
   } catch (err) {
-      if (err.name === "PrismaClientKnownRequestError" && err.code === "P2002") {
-        // this means the unique constraint for email was violated
-        return res
-          .status(StatusCodes.BAD_REQUEST)
-          .json({ message: "Email already registered" });
-      }
-      return next(err); // all other errors get passed to the error handler
+    if (err.name === "PrismaClientKnownRequestError" && err.code === "P2002") {
+      // this means the unique constraint for email was violated
+      return res
+        .status(StatusCodes.BAD_REQUEST)
+        .json({ message: "Email already registered" });
+    }
+    return next(err); // all other errors get passed to the error handler
   }
 };
 
 const logon = async (req, res) => {
   const { email: rawEmail, password } = req.body;
   const email = rawEmail.toLowerCase();
-  const result = await prisma.user.findUnique({ 
-    where: { email } 
+  const result = await prisma.user.findUnique({
+    where: { email },
   });
   if (!result) {
     return res
       .status(StatusCodes.UNAUTHORIZED)
       .json({ message: "Authentication Failed" });
   }
-  
+
   const user = result;
   const isEqualPassword = await comparePassword(password, user.hashedPassword);
   if (!isEqualPassword) {
@@ -189,14 +185,14 @@ const logoff = (req, res) => {
 
 const show = async (req, res) => {
   const userId = parseInt(req.params.id);
-  
+
   if (isNaN(userId)) {
     return res
       .status(StatusCodes.BAD_REQUEST)
-      .json({ error: "Invalid user ID"});
+      .json({ error: "Invalid user ID" });
   }
-  
-  if (userId !== req.user.id){
+
+  if (userId !== req.user.id) {
     return res
       .status(StatusCodes.FORBIDDEN)
       .json({ error: "You can only view your own profile" });
@@ -223,12 +219,14 @@ const show = async (req, res) => {
     },
   });
 
-  if (!user){
-    return res.status(StatusCodes.NOT_FOUND).json({message: "User not found"});
+  if (!user) {
+    return res
+      .status(StatusCodes.NOT_FOUND)
+      .json({ message: "User not found" });
   }
 
   res.status(StatusCodes.OK).json(user);
-}
+};
 
 const googleLogon = async (req, res, next) => {
   const { code } = req.body;
@@ -243,7 +241,7 @@ const googleLogon = async (req, res, next) => {
     const client = new OAuth2Client(
       process.env.GOOGLE_CLIENT_ID,
       process.env.GOOGLE_CLIENT_SECRET,
-      'postmessage',
+      "postmessage",
     );
 
     const { tokens } = await client.getToken(code);
@@ -267,13 +265,15 @@ const googleLogon = async (req, res, next) => {
     }
 
     const newUserData = await prisma.$transaction(async (tx) => {
-      return await createUserWithWelcomeTasks(tx, 
+      return await createUserWithWelcomeTasks(
+        tx,
         {
           email: email.toLowerCase(),
           name,
           hashedPassword: "GOOGLE_OAUTH_USER",
         },
-       false);
+        false,
+      );
     });
 
     const csrfToken = setJwtCookie(req, res, newUserData.user);
@@ -281,9 +281,9 @@ const googleLogon = async (req, res, next) => {
       user: newUserData.user,
       csrfToken,
     });
-  } catch(error) {
+  } catch (error) {
     return next(error);
   }
-}
+};
 
 module.exports = { register, logon, logoff, show, googleLogon };

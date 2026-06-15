@@ -1,7 +1,7 @@
-const express = require('express');
-const { v4: uuidv4 } = require('uuid');
-const path = require('path');
-const dogsRouter = require('./routes/dogs');
+const express = require("express");
+const { v4: uuidv4 } = require("uuid");
+const path = require("path");
+const dogsRouter = require("./routes/dogs");
 
 const app = express();
 
@@ -41,15 +41,15 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use('/', dogsRouter); // Do not remove this line
+app.use("/", dogsRouter); // Do not remove this line
 
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
 
   if (statusCode >= 400 && statusCode < 500) {
-    console.warn(`WARN: ${err.name}, ${err.message}`); 
+    console.warn(`WARN: ${err.name}, ${err.message}`);
   } else {
-    console.error(`ERROR: Error, ${err.message}`); 
+    console.error(`ERROR: Error, ${err.message}`);
   }
 
   const errorMessage =
@@ -68,6 +68,7 @@ app.use((req, res) => {
   });
 });
 
-
-const server = app.listen(3000, () => console.log("Server listening on port 3000"));
+const server = app.listen(3000, () =>
+  console.log("Server listening on port 3000"),
+);
 module.exports = server;

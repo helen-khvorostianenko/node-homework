@@ -29,7 +29,7 @@ function MockResponseWithCookies() {
 }
 
 beforeAll(async () => {
-  await prisma.Task.deleteMany(); 
+  await prisma.Task.deleteMany();
   await prisma.User.deleteMany();
 });
 
@@ -50,7 +50,7 @@ describe("testing logon, register, and logoff", () => {
     });
     saveRes = MockResponseWithCookies();
     await waitForRouteHandlerCompletion(register, req, saveRes);
-    expect(saveRes.statusCode).toBe(201); 
+    expect(saveRes.statusCode).toBe(201);
   });
 
   it("34. The user can logon.", async () => {
@@ -60,7 +60,7 @@ describe("testing logon, register, and logoff", () => {
     });
     saveRes = MockResponseWithCookies();
     await waitForRouteHandlerCompletion(logon, req, saveRes);
-    expect(saveRes.statusCode).toBe(200); 
+    expect(saveRes.statusCode).toBe(200);
   });
 
   it("35. A string in the cookie array starts with 'jwt='.", () => {
@@ -119,10 +119,9 @@ describe("testing logon, register, and logoff", () => {
     await waitForRouteHandlerCompletion(register, req, saveRes);
     expect(saveRes.statusCode).toBe(400);
   });
-  
 });
 
-let savedReq; 
+let savedReq;
 
 describe("Testing JWT middleware", () => {
   it("61. jwtMiddleware returns a 401 if the JWT cookie is not present.", async () => {
@@ -135,7 +134,9 @@ describe("Testing JWT middleware", () => {
   it("62. Returns a 401 if the JWT is invalid.", async () => {
     const req = httpMocks.createRequest({ method: "POST" });
     saveRes = MockResponseWithCookies();
-    const invalidJwt = jwt.sign({ id: 5, csrfToken: "badToken" }, "badSecret", { expiresIn: "1h" });
+    const invalidJwt = jwt.sign({ id: 5, csrfToken: "badToken" }, "badSecret", {
+      expiresIn: "1h",
+    });
     req.cookies = { jwt: invalidJwt };
     await waitForRouteHandlerCompletion(jwtMiddleware, req, saveRes);
     expect(saveRes.statusCode).toBe(401);
@@ -144,16 +145,20 @@ describe("Testing JWT middleware", () => {
   it("63. Returns a 401 if the JWT is valid but the CSRF token isn't.", async () => {
     const req = httpMocks.createRequest({ method: "POST" });
     saveRes = MockResponseWithCookies();
-    const validJwt = jwt.sign({ id: 5, csrfToken: "badToken" }, process.env.JWT_SECRET, { expiresIn: "1h" });
+    const validJwt = jwt.sign(
+      { id: 5, csrfToken: "badToken" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" },
+    );
     req.cookies = { jwt: validJwt };
     if (!req.headers) req.headers = {};
-    req.headers["x-csrf-token"] = "goodToken";  
+    req.headers["x-csrf-token"] = "goodToken";
     await waitForRouteHandlerCompletion(jwtMiddleware, req, saveRes);
     expect(saveRes.statusCode).toBe(401);
   });
 
   it("64. Calls next() if both the token and the jwt are good.", async () => {
-    savedReq = httpMocks.createRequest({ method: "POST" }); 
+    savedReq = httpMocks.createRequest({ method: "POST" });
     saveRes = MockResponseWithCookies();
     const validJwt = jwt.sign(
       { id: 5, csrfToken: "goodToken" },
@@ -172,6 +177,6 @@ describe("Testing JWT middleware", () => {
   });
 
   it("65. If both the token and the jwt are good, req.user.id has the appropriate value.", () => {
-    expect(savedReq.user.id).toBe(5); 
+    expect(savedReq.user.id).toBe(5);
   });
 });

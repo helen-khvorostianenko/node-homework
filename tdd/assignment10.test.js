@@ -302,7 +302,7 @@ describe("getting created tasks", () => {
     saveRes = httpMocks.createResponse({ eventEmitter: EventEmitter });
     await index(req, saveRes);
     const data = saveRes._getJSONData();
-    expect(data.tasks.length).toBe(3);
+    expect(data.tasks).toHaveLength(3);
   });
   it("You can retrieve the first array object using the `show()` method of the controller.", async () => {
     const req = httpMocks.createRequest({
@@ -367,7 +367,7 @@ describe("testing the update and delete of tasks.", () => {
     saveRes = httpMocks.createResponse({ eventEmitter: EventEmitter });
     await index(req, saveRes);
     saveData = saveRes._getJSONData();
-    expect(saveData.tasks.length).toBe(3);
+    expect(saveData.tasks).toHaveLength(3);
   });
 });
 

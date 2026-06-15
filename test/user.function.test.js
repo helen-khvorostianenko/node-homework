@@ -3,7 +3,7 @@ const request = require("supertest");
 process.env.DATABASE_URL = process.env.TEST_DATABASE_URL;
 const prisma = require("../db/prisma");
 let agent;
-let saveRes;
+// let saveRes;
 const { app, server } = require("../app");
 
 beforeAll(async () => {
@@ -27,7 +27,7 @@ describe("register a user", () => {
       email: "jdeere@example.com",
       password: "Pa$$word20",
     };
-    
+
     saveRes = await agent
       .post("/api/users/register")
       .set("X-Recaptcha-Test", process.env.RECAPTCHA_BYPASS)
@@ -61,7 +61,7 @@ describe("register a user", () => {
   it("51. Verify that you can log out.", async () => {
     saveRes = await agent
       .post("/api/users/logoff")
-      .set("X-CSRF-TOKEN", csrfToken); 
+      .set("X-CSRF-TOKEN", csrfToken);
     expect(saveRes.status).toBe(200);
   });
 

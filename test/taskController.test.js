@@ -11,6 +11,9 @@ const {
   create,
   update,
   deleteTask,
+  showTrash,
+  restoreTask,
+  deleteTrash,
 } = require("../controllers/taskController");
 
 let user1 = null;
@@ -116,7 +119,7 @@ describe("test getting created tasks", () => {
 
   it("22. The returned object has a tasks array of length 1.", () => {
     saveData = saveRes._getJSONData();
-    expect(saveData.tasks.length).toBe(1);
+    expect(saveData.tasks).toHaveLength(1);
   });
 
   it("23. The title in the first array object is as expected.", () => {
@@ -129,7 +132,7 @@ describe("test getting created tasks", () => {
 
   it("25. If you get the list of tasks using the userId from user2, you get a 404.", async () => {
     const req = httpMocks.createRequest({ method: "GET" });
-    req.user = { id: user2.id }; 
+    req.user = { id: user2.id };
     saveRes = httpMocks.createResponse({ eventEmitter: EventEmitter });
     await waitForRouteHandlerCompletion(index, req, saveRes);
     expect(saveRes.statusCode).toBe(404);
@@ -203,5 +206,98 @@ describe("test updating and deleting tasks", () => {
     saveRes = httpMocks.createResponse({ eventEmitter: EventEmitter });
     await waitForRouteHandlerCompletion(index, req, saveRes);
     expect(saveRes.statusCode).toBe(404);
+  });
+});
+
+describe("test recycle bin", () => {
+  let trashTaskId = null;
+
+  it("33. User1 can create a task for trash testing.", async () => {
+    const req = httpMocks.createRequest({
+      method: "POST",
+      body: { title: "task to trash" },
+    });
+    req.user = { id: user1.id };
+    saveRes = httpMocks.createResponse({ eventEmitter: EventEmitter });
+    await waitForRouteHandlerCompletion(create, req, saveRes);
+    expect(saveRes.statusCode).toBe(201);
+    trashTaskId = saveRes._getJSONData().id;
+  });
+
+  it("34. Deleting a task moves it to trash, not permanently.", async () => {
+    const req = httpMocks.createRequest({ method: "DELETE" });
+    req.user = { id: user1.id };
+    req.params = { id: trashTaskId.toString() };
+    saveRes = httpMocks.createResponse({ eventEmitter: EventEmitter });
+    await waitForRouteHandlerCompletion(deleteTask, req, saveRes);
+    expect(saveRes.statusCode).toBe(200);
+    const data = saveRes._getJSONData();
+    expect(data.id).toBe(trashTaskId);
+  });
+
+  it("35. Trashed task does not appear in regular task list.", async () => {
+    const req = httpMocks.createRequest({ method: "GET" });
+    req.user = { id: user1.id };
+    saveRes = httpMocks.createResponse({ eventEmitter: EventEmitter });
+    await waitForRouteHandlerCompletion(index, req, saveRes);
+    expect(saveRes.statusCode).toBe(404);
+  });
+
+  it("36. Trashed task appears in trash.", async () => {
+    const req = httpMocks.createRequest({ method: "GET" });
+    req.user = { id: user1.id };
+    saveRes = httpMocks.createResponse({ eventEmitter: EventEmitter });
+    await waitForRouteHandlerCompletion(showTrash, req, saveRes);
+    expect(saveRes.statusCode).toBe(200);
+    const data = saveRes._getJSONData();
+    expect(data.some((t) => t.id === trashTaskId)).toBe(true); // ← проверяем что наша задача есть
+  });
+
+  it("37. User2 can't restore user1's task.", async () => {
+    const req = httpMocks.createRequest({ method: "PATCH" });
+    req.user = { id: user2.id };
+    req.params = { id: trashTaskId.toString() };
+    saveRes = httpMocks.createResponse({ eventEmitter: EventEmitter });
+    await waitForRouteHandlerCompletion(restoreTask, req, saveRes);
+    expect(saveRes.statusCode).toBe(403);
+  });
+
+  it("38. User1 can restore a trashed task.", async () => {
+    const req = httpMocks.createRequest({ method: "PATCH" });
+    req.user = { id: user1.id };
+    req.params = { id: trashTaskId.toString() };
+    saveRes = httpMocks.createResponse({ eventEmitter: EventEmitter });
+    await waitForRouteHandlerCompletion(restoreTask, req, saveRes);
+    expect(saveRes.statusCode).toBe(200);
+    const data = saveRes._getJSONData();
+    expect(data.deletedAt).toBeNull();
+  });
+
+  it("39. Restored task appears in regular task list again.", async () => {
+    const req = httpMocks.createRequest({ method: "GET" });
+    req.user = { id: user1.id };
+    saveRes = httpMocks.createResponse({ eventEmitter: EventEmitter });
+    await waitForRouteHandlerCompletion(index, req, saveRes);
+    expect(saveRes.statusCode).toBe(200);
+    const data = saveRes._getJSONData();
+    expect(data.tasks).toHaveLength(1);
+  });
+
+  it("40. User1 can empty the trash.", async () => {
+    // First move task to trash again
+    const deleteReq = httpMocks.createRequest({ method: "DELETE" });
+    deleteReq.user = { id: user1.id };
+    deleteReq.params = { id: trashTaskId.toString() };
+    saveRes = httpMocks.createResponse({ eventEmitter: EventEmitter });
+    await waitForRouteHandlerCompletion(deleteTask, deleteReq, saveRes);
+
+    // Now empty trash
+    const req = httpMocks.createRequest({ method: "DELETE" });
+    req.user = { id: user1.id };
+    saveRes = httpMocks.createResponse({ eventEmitter: EventEmitter });
+    await waitForRouteHandlerCompletion(deleteTrash, req, saveRes);
+    expect(saveRes.statusCode).toBe(200);
+    const data = saveRes._getJSONData();
+    expect(data.deleted).toBe(2);
   });
 });

@@ -74,7 +74,7 @@ const getUsersWithStats = async (req, res, next) => {
     return res.status(StatusCodes.BAD_REQUEST).json({ message: error.message });
   }
   const { page, limit } = value;
-  const skip = (page - 1) * limit;  
+  const skip = (page - 1) * limit;
 
   try {
     const usersRaw = await prisma.user.findMany({
@@ -124,7 +124,7 @@ const getUsersWithStats = async (req, res, next) => {
   }
 };
 
-const searchTasks = async (req, res, next) => {
+const searchTasks = async (req, res) => {
   const searchQuery = req.query.q;
 
   if (!searchQuery || searchQuery.trim().length < 2) {

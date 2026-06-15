@@ -1,17 +1,15 @@
-const fs = require('fs');
-const fsp = require('fs/promises');
-const path = require('path');
-
+const fs = require("fs");
+const fsp = require("fs/promises");
+const path = require("path");
 
 // Write a sample file for demonstration
 const filePath = path.join(__dirname, "sample-files", "sample.txt");
-const content ="Hello, async world!\n";
+const content = "Hello, async world!\n";
 try {
-    fs.writeFileSync(filePath, content);
+  fs.writeFileSync(filePath, content);
 } catch (err) {
-  console.log(err.message)
+  console.log(err.message);
 }
-
 
 // 1. Callback style
 fs.readFile(filePath, "utf8", (err, data) => {
@@ -40,10 +38,10 @@ fsp
 // 3. Async/Await style
 
 const readWithAsyncAwait = async () => {
-  try{
-    const data = await fsp.readFile(filePath, 'utf8');
+  try {
+    const data = await fsp.readFile(filePath, "utf8");
     console.log("Async/Await read:", data);
-  } catch (err){
+  } catch (err) {
     console.log(err.message);
   }
 };

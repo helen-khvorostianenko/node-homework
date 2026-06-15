@@ -1,4 +1,4 @@
-// 
+//
 const fs = require("fs"); // File system operations
 // const os = require("os"); // Operating system information
 // const net = require("net"); // Networking (TCP sockets)
@@ -9,19 +9,18 @@ console.log(module);
 console.log(global);
 console.log(fs);
 
-fs.open("./tmp/file.txt", "w",(err, fileHandle) => {
+fs.open("./tmp/file.txt", "w", (err, fileHandle) => {
   if (err) {
-    console.log('file open failed: ', err.message);
+    console.log("file open failed: ", err.message);
   } else {
-    console.log('file open succeeded. The file handle is: ', fileHandle);
+    console.log("file open succeeded. The file handle is: ", fileHandle);
   }
 });
 console.log("last statement");
 
-
 const doFileOperations = async () => {
   try {
-    const filehandle = await new Promise((resolve, reject) => {
+    await new Promise((resolve, reject) => {
       fs.open("./tmp/file.txt", "w", (err, filehandle) => {
         return err ? reject(err) : resolve(filehandle);
       });
@@ -31,14 +30,13 @@ const doFileOperations = async () => {
   }
 };
 
-doFileOperations(); 
+doFileOperations();
 
-const fsp = require("fs/promises"); 
+const fsp = require("fs/promises");
 
 const doFileOperationsP = async () => {
-  
   try {
-    const fileHandle = await fsp.open("./tmp/file.txt", "w");
+    await fsp.open("./tmp/file.txt", "w");
   } catch (err) {
     console.log("A error occurred.", err);
   }
@@ -46,16 +44,15 @@ const doFileOperationsP = async () => {
 
 doFileOperationsP();
 
-
 // Streams for Large Files
-const readStream = fs.createReadStream('./largefile.txt',{
-  encoding: 'utf8',
-  highWaterMark: 1024 
+const readStream = fs.createReadStream("./largefile.txt", {
+  encoding: "utf8",
+  highWaterMark: 1024,
 });
 
-readStream.on('data', (chunk) => {
+readStream.on("data", (chunk) => {
   console.log("Received chunk:", chunk.length, "characters");
-  console.log('First 40 chars: ', chunk.slice(0, 40));
+  console.log("First 40 chars: ", chunk.slice(0, 40));
 });
 
 readStream.on("end", () => {
@@ -67,7 +64,7 @@ readStream.on("error", (err) => {
 });
 
 // Writing Files with Streams
-const writeStream = fs.createWriteStream('./output.txt');
+const writeStream = fs.createWriteStream("./output.txt");
 
 writeStream.write("First chunk of data\n");
 writeStream.write("Second chunk of data\n");
@@ -76,8 +73,8 @@ writeStream.write("Next chunk of data\n");
 
 writeStream.end();
 
-writeStream.on('finish', () => {
-  console.log('Finished writing to file');
+writeStream.on("finish", () => {
+  console.log("Finished writing to file");
 });
 
 writeStream.on("error", (err) => {

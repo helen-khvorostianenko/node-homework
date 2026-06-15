@@ -203,24 +203,24 @@ const show = async (req, res) => {
   }
 
   const user = await prisma.user.findUnique({
-    where: {id: userId},
+    where: { id: userId },
     select: {
       id: true,
       name: true,
       email: true,
       createdAt: true,
       Task: {
-        where: { isCompleted: false},
+        where: { isCompleted: false, deletedAt: null },
         select: {
           id: true,
           title: true,
           priority: true,
-          createdAt: true
+          createdAt: true,
         },
-        orderBy: {createdAt: 'desc'},
-        take: 5
-      }
-    }
+        orderBy: { createdAt: "desc" },
+        take: 5,
+      },
+    },
   });
 
   if (!user){

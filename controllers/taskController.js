@@ -318,8 +318,8 @@ const deleteTask = async(req, res, next) => {
 
     if (!task || task.userId !== req.user.id) {
       return res
-        .status(StatusCodes.FORBIDDEN)
-        .json({ error: "Not authorized" });
+        .status(StatusCodes.NOT_FOUND)
+        .json({ error: "That task was not found" });
     }
     const deletedTask = await prisma.task.update({
       where: {

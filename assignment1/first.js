@@ -20,7 +20,7 @@ console.log("last statement");
 
 const doFileOperations = async () => {
   try {
-    const filehandle = await new Promise((resolve, reject) => {
+    await new Promise((resolve, reject) => {
       fs.open("./tmp/file.txt", "w", (err, filehandle) => {
         return err ? reject(err) : resolve(filehandle);
       });
@@ -36,7 +36,7 @@ const fsp = require("fs/promises");
 
 const doFileOperationsP = async () => {
   try {
-    const fileHandle = await fsp.open("./tmp/file.txt", "w");
+    await fsp.open("./tmp/file.txt", "w");
   } catch (err) {
     console.log("A error occurred.", err);
   }

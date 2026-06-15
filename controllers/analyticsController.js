@@ -124,7 +124,7 @@ const getUsersWithStats = async (req, res, next) => {
   }
 };
 
-const searchTasks = async (req, res, next) => {
+const searchTasks = async (req, res) => {
   const searchQuery = req.query.q;
 
   if (!searchQuery || searchQuery.trim().length < 2) {

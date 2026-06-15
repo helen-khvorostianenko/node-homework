@@ -8,7 +8,7 @@ const { randomUUID } = require("crypto");
 const jwt = require("jsonwebtoken");
 const { OAuth2Client } = require("google-auth-library");
 
-const cookieFlags = (req) => {
+const cookieFlags = () => {
   return {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production", // only when HTTPS is available

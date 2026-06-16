@@ -5,6 +5,7 @@ A RESTful API for managing personal to-do tasks, built with Node.js, Express, an
 ## Features
 
 - User registration, login, and logout
+- Google OAuth authentication — login with your Google account
 - Full CRUD for tasks (create, read, update, delete)
 - Soft deletion with Recycle Bin — tasks are moved to trash instead of being permanently deleted, and can be restored
 - Pagination, filtering, and sorting of task lists
@@ -46,6 +47,8 @@ https://node-homework-dqq6.onrender.com/
    DATABASE_URL=postgresql://localhost/tasklist
    TEST_DATABASE_URL=postgresql://localhost/testtasklist
    JWT_SECRET=your_secret_here
+   GOOGLE_CLIENT_ID=your_google_client_id
+   GOOGLE_CLIENT_SECRET=your_google_client_secret
 
    Note: DATABASE_URL format may vary depending on your OS and PostgreSQL setup.
    See [Prisma docs](https://www.prisma.io/docs/reference/database-reference/connection-urls) for details.
@@ -63,6 +66,7 @@ https://node-homework-dqq6.onrender.com/
 - POST /api/users/register - register a new user
 - POST /api/users/logon - login
 - POST /api/users/logoff - logout
+- POST /api/users/googleLogon - login with Google account
 
 ### Tasks
 
